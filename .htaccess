@@ -1,3 +1,4 @@
+DirectoryIndex index.php
 Options -Indexes -MultiViews
 
 RewriteEngine On
@@ -5,6 +6,25 @@ RewriteEngine On
 # Desactivar redirección automática de directorios
 DirectorySlash Off
 
+# Evita que Apache liste los archivos
+Options -Indexes -MultiViews
+
+# Habilita uso de PATH_INFO 
+AcceptPathInfo On
+
+# Activa mod_rewrite
+RewriteEngine On
+
+# No añadir slash al final
+DirectorySlash Off
+
+# Si no existe el archivo solicitado, envíalo a index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+
 # Manejar TODAS las solicitudes (incluyendo OPTIONS) a través de index.php
 RewriteCond %{REQUEST_FILENAME} !-f 
 RewriteRule ^ index.php [QSA,L]
+

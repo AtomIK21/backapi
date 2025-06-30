@@ -1,9 +1,11 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+session_start();
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Authorization, Content-Type, Accept, Origin");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Max-Age: 3600");
+header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header("Content-Length: 0");
@@ -59,6 +61,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($arrayRutas[1]) && $arrayRuta
     $controlador->login($datos['email'], $datos['llave_secreta']);
     return;
 }
+
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && 
+    isset($arrayRutas[1]) && $arrayRutas[1] === 'clientes' && 
+    isset($arrayRutas[2]) && $arrayRutas[2] === 'cursos') {
+    
+    $cliente_id = null;
+    
+    // 1. Intenta obtener de la sesión
+    if(isset($_SESSION['cliente_id'])) {
+        $cliente_id = $_SESSION['cliente_id'];
+    } 
+    // 2. Intenta obtener del parámetro GET
+    elseif(isset($_GET['cliente_id']) && is_numeric($_GET['cliente_id'])) {
+        $cliente_id = (int)$_GET['cliente_id'];
+    }
+    // 3. Si no hay ID, devolver error
+    else {
+        http_response_code(400);
+        echo json_encode(["error" => "ID de cliente no proporcionado"]);
+        exit;
+    }
+
+    $controlador = new ControladorClientes();
+    $controlador->cursosDelCliente($cliente_id);
+    return;
+}
+
+
 
 // Creación de cliente (sin autenticación)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($arrayRutas[1]) && $arrayRutas[1] === 'clientes') {

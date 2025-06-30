@@ -33,5 +33,30 @@ class ModeloClientes {
             return false;
         }
     }
+
+    static public function obtenerCursosDelCliente($cliente_id) {
+        try {
+            $stmt = Conexion::conectar()->prepare("
+                SELECT cursos.*
+                FROM clientes_cursos
+                INNER JOIN cursos ON cursos.id = clientes_cursos.id_curso
+                WHERE clientes_cursos.id_cliente = :cliente_id
+            ");
+            $stmt->bindParam(":cliente_id", $cliente_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $total = count($cursos);
+            
+            return [
+                "status" => 200,
+                "total_cursos" => $total,
+                "cursos" => $cursos
+            ];
+        } catch (PDOException $e) {
+            error_log("Error en obtenerCursosDelCliente: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>

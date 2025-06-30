@@ -14,9 +14,15 @@ class ControladorClientes {
         $cliente = ModeloClientes::buscarPorEmail("clientes", $email);
 
         if ($cliente && password_verify($llave_secreta, $cliente['llave_secreta'])) {
+            // Iniciar sesión
+            session_start();
+            $_SESSION['cliente_id'] = $cliente['id'];
+            $_SESSION['cliente_email'] = $cliente['email'];
+            
             echo json_encode([
                 "status" => 200,
                 "detalle" => "Login exitoso",
+                "token" => bin2hex(random_bytes(16)), 
                 "cliente" => [
                     "id" => $cliente['id'],
                     "nombre" => $cliente['nombre'],
@@ -31,6 +37,7 @@ class ControladorClientes {
             ]);
         }
     }
+
 
     public function create($datos) {
         if (!isset($datos["nombre"]) || 
@@ -83,6 +90,56 @@ class ControladorClientes {
                 "detalle" => "Error al registrar el cliente"
             ]);
         }
+
     }
-}
+
+    public function cursosDelCliente($cliente_id) {
+        $resultado = ModeloClientes::obtenerCursosDelCliente($cliente_id);
+        
+        if ($resultado === false) {
+            http_response_code(500);
+            echo json_encode([
+                "status" => 500,
+                "message" => "Error en el servidor"
+            ]);
+            return;
+        }
+                
+        header('Content-Type: application/json');
+        echo json_encode($resultado);
+        exit;
+    }
+        
+    static public function obtenerCursosDelCliente($cliente_id) {
+        try {
+            $stmt = Conexion::conectar()->prepare("
+                SELECT cursos.*
+                FROM clientes_cursos
+                INNER JOIN cursos ON cursos.id = clientes_cursos.id_curso
+                WHERE clientes_cursos.id_cliente = :cliente_id
+            ");
+            $stmt->bindParam(":cliente_id", $cliente_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $total = count($cursos);
+            
+            // Devuelve la estructura esperada por el frontend
+            return [
+                "status" => 200,
+                "total_cursos" => $total,
+                "cursos" => $cursos
+            ];
+            
+        } catch (PDOException $e) {
+            error_log("Error en obtenerCursosDelCliente: " . $e->getMessage());
+            return [
+                "status" => 500,
+                "message" => "Error en el servidor"
+            ];
+        }
+    }
+
+    }
+
 ?>
