@@ -14,8 +14,8 @@ class ControladorClientes {
         $cliente = ModeloClientes::buscarPorEmail("clientes", $email);
 
         if ($cliente && password_verify($llave_secreta, $cliente['llave_secreta'])) {
-            // Iniciar sesión
-            session_start();
+            
+            //session_start();
             $_SESSION['cliente_id'] = $cliente['id'];
             $_SESSION['cliente_email'] = $cliente['email'];
             

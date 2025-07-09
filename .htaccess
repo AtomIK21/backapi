@@ -1,30 +1,26 @@
-DirectoryIndex index.php
-Options -Indexes -MultiViews
+# ────────────────────────────────────────────────────────
+# 1) CORS headers para TODAS las respuestas
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin   "http://localhost:3000"
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Methods  "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers  "Content-Type, Authorization, X-Requested-With"
+</IfModule>
 
+# ────────────────────────────────────────────────────────
+# 2) Si es preflight OPTIONS, DETÉN el rewriting aquí (no redirijas)
 RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^ - [L]
 
-# Desactivar redirección automática de directorios
-DirectorySlash Off
-
-# Evita que Apache liste los archivos
+# ────────────────────────────────────────────────────────
+# 3) Evita listar directorios y multi-views
 Options -Indexes -MultiViews
-
-# Habilita uso de PATH_INFO 
+DirectorySlash Off
 AcceptPathInfo On
 
-# Activa mod_rewrite
-RewriteEngine On
-
-# No añadir slash al final
-DirectorySlash Off
-
-# Si no existe el archivo solicitado, envíalo a index.php
+# ────────────────────────────────────────────────────────
+# 4) Para todo lo demás (archivos inexistentes), pasa a index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
-
-
-# Manejar TODAS las solicitudes (incluyendo OPTIONS) a través de index.php
-RewriteCond %{REQUEST_FILENAME} !-f 
-RewriteRule ^ index.php [QSA,L]
-
+RewriteRule . index.php [QSA,L]
