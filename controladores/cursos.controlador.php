@@ -1,13 +1,18 @@
 <?php 
 class ControladorCursos{
+
     public function index($pagina) {
         $cantidad = 15;
         $desde = ($pagina - 1) * $cantidad;
+                
+        $totalCursos = ModeloCursos::totalCursos(); 
+        
         $cursos = ModeloCursos::index("cursos", "clientes", $cantidad, $desde);
 
         $json = [
             "status" => 200,
-            "total_registros" => count($cursos),
+            "total_registros" => $totalCursos, 
+            "total_paginas" => ceil($totalCursos / $cantidad), 
             "detalle" => $cursos
         ];
 
